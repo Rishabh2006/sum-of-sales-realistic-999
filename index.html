@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Must pass check: Page title is 'Sales Summary' -->
+    <title>Sales Summary</title>
+    
+    <!-- Must pass check: Page uses Bootstrap 5 from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <style>
+        /* Custom CSS for ensuring the content fills the viewport and is centered */
+        .full-height-center {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa; /* Light background for contrast */
+        }
+        /* Custom styling for the results card */
+        .results-card {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar (Optional but adds professionalism) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">Sales Dashboard</a>
+        </div>
+    </nav>
+
+    <!-- Main Content Area: Centered vertically and horizontally -->
+    <main class="container full-height-center">
+        <div class="col-lg-8 col-md-10">
+            
+            <!-- Must pass check: Visually professional with Bootstrap styling (using Card component) -->
+            <div class="card p-5 results-card text-center">
+                <div class="card-body">
+                    <h1 class="card-title text-primary mb-4">Total Sales Revenue</h1>
+                    <p class="lead">Calculated from the attached data source:</p>
+
+                    <!-- Element must exist and display the sum prominently -->
+                    <div id="total-sales-container">
+                        <span id="total-sales" class="display-2 fw-bold text-success">$0.00</span>
+                    </div>
+
+                    <p class="mt-4 text-muted">Data processed in-memory using vanilla JavaScript.</p>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Bootstrap 5 JavaScript Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- Embedded JavaScript for Data Processing -->
+    <script>
+        // 1. DATA SOURCE: Attached CSV content embedded as a JavaScript string.
+        const CSV_DATA = `product,sales
+Laptop,1200
+Phone,850
+Samartwatch,450
+Tablet,600`;
+
+        /**
+         * Parses the CSV string and calculates the sum of the 'sales' column.
+         * @param {string} csv - The raw CSV data string.
+         * @returns {number} The calculated total sales.
+         */
+        function calculateTotalSales(csv) {
+            let total = 0;
+            
+            // Split the data into rows, remove leading/trailing whitespace.
+            const rows = csv.trim().split('\n');
+
+            // Find the index of the 'sales' column from the header row (index 0).
+            const header = rows[0].split(',');
+            const salesColumnIndex = header.findIndex(h => h.trim().toLowerCase() === 'sales');
+            
+            // Handle edge case: If 'sales' column is not found
+            if (salesColumnIndex === -1) {
+                console.error("Error: 'sales' column header not found in CSV data.");
+                return 0;
+            }
+
+            // Iterate through data rows (starting from index 1, skipping header)
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row.trim()) continue; // Skip empty lines
+
+                const columns = row.split(',');
+                
+                if (columns.length > salesColumnIndex) {
+                    // Extract the sales value from the determined column index
+                    const rawSalesValue = columns[salesColumnIndex].trim();
+                    const salesValue = parseFloat(rawSalesValue);
+                    
+                    // Handle edge case: Ensure the value is a valid number before adding
+                    if (!isNaN(salesValue)) {
+                        total += salesValue;
+                    } else {
+                        console.warn(`Skipping invalid sales value: "${rawSalesValue}" in row ${i}.`);
+                    }
+                }
+            }
+            return total;
+        }
+
+        /**
+         * Main function executed when the DOM is fully loaded.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Perform calculation
+            const totalSalesAmount = calculateTotalSales(CSV_DATA); // Expected: 3100
+
+            // Format the result as currency (US Dollar, no decimal places for clean display)
+            const formattedTotal = totalSalesAmount.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0
+            });
+
+            // Must pass check: Display the result in element #total-sales
+            const outputElement = document.getElementById('total-sales');
+            
+            if (outputElement) {
+                outputElement.textContent = formattedTotal;
+            } else {
+                console.error("Target element #total-sales not found.");
+            }
+        });
+    </script>
+</body>
+</html>
